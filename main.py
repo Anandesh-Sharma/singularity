@@ -1,23 +1,63 @@
-import glob
 import importlib.util
 import os
-import sys
 
 from fastapi import APIRouter, FastAPI
 
 from core.db.postgres.models import sync_models_with_database
 
-# add the service folder to the path
-service_fpath = os.path.join(os.path.dirname(__file__), "services", "**")
-services_paths = glob.glob(service_fpath)
-sys.path.extend(services_paths)
-
-# database
-
 router = APIRouter()
+
+
+def service_name_validation(name: str) -> None | ValueError:
+    if (
+        " " in name
+        or name[0].isdigit()
+        or "/" in name
+        or "\\" in name
+        or "." in name
+        or ":" in name
+        or "?" in name
+        or '"' in name
+        or "<" in name
+        or ">" in name
+        or "|" in name
+        or "*" in name
+        or "[" in name
+        or "]" in name
+        or "=" in name
+        or ";" in name
+        or "," in name
+        or "!" in name
+        or "@" in name
+        or "#" in name
+        or "$" in name
+        or "%" in name
+        or "^" in name
+        or "&" in name
+        or "(" in name
+        or ")" in name
+        or "{" in name
+        or "}" in name
+        or "+" in name
+        or "`" in name
+        or "~" in name
+        or "'" in name
+        or "-" in name
+    ):
+        raise ValueError(
+            f"Service name: {service_name} should contain only alphabets, numbers and underscores."
+        )
+
+
+def endpoint_friendly_service_name(name: str) -> str:
+    return name.replace("_", "-")
+
 
 services_folder = "services"
 for service_name in os.listdir(services_folder):
+    # validate service name
+    service_name_validation(service_name)
+
     if os.path.isdir(os.path.join(services_folder, service_name)) and os.path.exists(
         os.path.join(services_folder, service_name, "service.py")
     ):
@@ -30,28 +70,28 @@ for service_name in os.listdir(services_folder):
         if hasattr(module, "Service"):
             service_class = getattr(module, "Service")
             service_instance = service_class()
-
+            endpoint = endpoint_friendly_service_name(service_name)
             if hasattr(service_instance, "get"):
                 router.add_api_route(
-                    f"/{service_name}",
+                    f"/{endpoint}",
                     getattr(service_instance, "get"),
                     methods=["GET"],
                 )
             if hasattr(service_instance, "post"):
                 router.add_api_route(
-                    f"/{service_name}",
+                    f"/{endpoint}",
                     getattr(service_instance, "post"),
                     methods=["POST"],
                 )
             if hasattr(service_instance, "put"):
                 router.add_api_route(
-                    f"/{service_name}",
+                    f"/{endpoint}",
                     getattr(service_instance, "put"),
                     methods=["PUT"],
                 )
             if hasattr(service_instance, "delete"):
                 router.add_api_route(
-                    f"/{service_name}",
+                    f"/{endpoint}",
                     getattr(service_instance, "delete"),
                     methods=["DELETE"],
                 )
