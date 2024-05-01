@@ -1,18 +1,16 @@
 import enum
 from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, Field
 
 
-class CarType(enum.Enum):
-    SUV = "suv"
-    Sedan = "sedan"
-    Hatchback = "hatchback"
+class CarType(str, enum.Enum):
+    SEDAN = "SEDAN"
+    SUV = "SUV"
+    HATCHBACK = "HATCHBACK"
 
 
 class Car(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
     name: Annotated[str, Field(min_length=2, max_length=30, examples=["Pineapple"])]
     description: str | None = Annotated[
         str, Field(min_length=1, max_length=63206, examples=["This is the description"])
@@ -22,6 +20,10 @@ class Car(BaseModel):
     fuel: str
     power: float
     type: CarType
+
+    class config:
+        extra = "forbid"
+        orm_mode = True
 
 
 class CarRead(BaseModel):

@@ -1,13 +1,12 @@
 from core.service import Base
-from services.cars.model import CarModel
-from services.cars.schemas import Car, CarRead
+
+from .model import CarModel
+from .schemas import Car, CarRead
 
 
 class Service(Base):
     async def post(self, car: Car) -> CarRead:
-        new_car = CarModel(
-            name=car.name, description=car.description, price=car.price, tax=car.tax
-        )
+        new_car = CarModel(**car.model_dump())
         await new_car.create()
         return new_car
 

@@ -1,8 +1,9 @@
 from typing import List
 
 from core.service import Base
-from services.demo_service.model import Item as ItemModel
-from services.demo_service.schemas import Item, ItemRead
+
+from .model import Item as ItemModel
+from .schemas import Item, ItemRead
 
 
 class Service(Base):

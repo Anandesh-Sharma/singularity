@@ -3,13 +3,15 @@ import enum
 from sqlalchemy import Enum, Float, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
+# from sqlalchemy.types import Enum as SqlAlchemyEnum
+# from sqlalchemy.types import Float, Integer, String
 from core.db.postgres.models import CRUD
 
 
 class CarType(enum.Enum):
-    SUV = "suv"
-    Sedan = "sedan"
-    Hatchback = "hatchback"
+    SEDAN = "SEDAN"
+    SUV = "SUV"
+    HATCHBACK = "HATCHBACK"
 
 
 class CarModel(CRUD):
@@ -21,4 +23,4 @@ class CarModel(CRUD):
     tax: Mapped[float] = mapped_column(Float, nullable=True)
     fuel: Mapped[str] = mapped_column(String(10), nullable=False)
     power: Mapped[str] = mapped_column(Float, nullable=False)
-    type: Mapped[CarType] = mapped_column(Enum(CarType), nullable=False)
+    type: Mapped[CarType] = mapped_column(Enum(CarType, name="cartype"), nullable=False)

@@ -6,7 +6,7 @@ from sqlalchemy import Boolean, DateTime, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.future import select
-from sqlalchemy.orm import Mapped, declarative_base, mapped_column
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from core.db.postgres.main import async_engine, async_session
 
@@ -27,7 +27,6 @@ class TimestampMixin:
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime,
-        nullable=True,
         onupdate=lambda: datetime.now(timezone.utc).replace(tzinfo=None),
         server_default=text("current_timestamp(0)"),
     )
@@ -42,7 +41,8 @@ class SoftDeleteMixin:
     is_deleted: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
-Base = declarative_base()
+class Base(DeclarativeBase):
+    pass
 
 
 async def sync_models_with_database():
