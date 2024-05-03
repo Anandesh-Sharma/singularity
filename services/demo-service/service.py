@@ -1,6 +1,6 @@
 from typing import List
 
-from core.service import Base
+from singularity.service import Base
 
 from .model import Item as ItemModel
 from .schemas import Item, ItemRead

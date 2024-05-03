@@ -1,12 +1,10 @@
 import importlib.util
 import inspect
-import logging
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
 from fastapi import APIRouter, FastAPI
-
-logging.basicConfig(level=logging.INFO)
 
 
 def service_name_validation(name: str) -> None | ValueError:
@@ -17,17 +15,26 @@ def service_name_validation(name: str) -> None | ValueError:
 
 
 class Singularity(FastAPI):
-    def __init__(self, *args, **kwargs):
-        # super().__init__()
-        self.app = FastAPI(*args, **kwargs)
+    def __init__(self, env_path: str = None):
+        self.base_path = Path(inspect.stack()[1].filename).parent
+        self.services_folder = self.base_path / "services"
+        self._load_env_(env_path)
+        self._setup_application_()
+
+    def _load_env_(self, path: str | None):
+        if path is None:
+            path = os.path.join(self.base_path, ".env")
+
+        if not os.path.exists(path):
+            raise ValueError(f"Environment file not found in {path}")
+
+        load_dotenv(dotenv_path=path)
+
+    def _setup_application_(
+        self,
+    ):
+        self.app = FastAPI()
         self.router = APIRouter()
-
-        frame = inspect.currentframe()
-        caller_frame = inspect.getouterframes(frame)[1]
-        caller_path = caller_frame.filename
-        base_path = Path(caller_path).parent
-
-        self.services_folder = base_path / "services"
         self.register_services()
         self.app.include_router(self.router)
 
@@ -37,7 +44,6 @@ class Singularity(FastAPI):
         return getattr(self.app, name)
 
     def register_services(self):
-        logging.info(f"Registering services from {self.services_folder}")
         for service_name in os.listdir(self.services_folder):
             # validate service name
             service_name_validation(service_name)
@@ -85,4 +91,3 @@ class Singularity(FastAPI):
                     raise ValueError(f"Service class not found in {service_name}")
             else:
                 raise ValueError(f"Service file not found in {service_name}")
-        logging.info(f"Sucessfully registered services from {self.services_folder}")

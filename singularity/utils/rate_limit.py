@@ -3,8 +3,8 @@ from datetime import UTC, datetime
 from redis.asyncio import ConnectionPool, Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ...core.logger import logging
 from ...schemas.rate_limit import sanitize_path
+from ...singularity.logger import logging
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +12,9 @@ pool: ConnectionPool | None = None
 client: Redis | None = None
 
 
-async def is_rate_limited(db: AsyncSession, user_id: int, path: str, limit: int, period: int) -> bool:
+async def is_rate_limited(
+    db: AsyncSession, user_id: int, path: str, limit: int, period: int
+) -> bool:
     if client is None:
         logger.error("Redis client is not initialized.")
         raise Exception("Redis client is not initialized.")
@@ -32,7 +34,9 @@ async def is_rate_limited(db: AsyncSession, user_id: int, path: str, limit: int,
             return True
 
     except Exception as e:
-        logger.exception(f"Error checking rate limit for user {user_id} on path {path}: {e}")
+        logger.exception(
+            f"Error checking rate limit for user {user_id} on path {path}: {e}"
+        )
         raise e
 
     return False

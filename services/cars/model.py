@@ -5,7 +5,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 # from sqlalchemy.types import Enum as SqlAlchemyEnum
 # from sqlalchemy.types import Float, Integer, String
-from core.db.postgres.models import CRUD
+from singularity.db.postgres.models import CRUD
 
 
 class CarType(enum.Enum):

@@ -6,7 +6,7 @@ sys.path.append("/Users/hash/work/personal/singularity")
 from sqlalchemy import Float, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from core.db.postgres.models import CRUD
+from singularity.db.postgres.models import CRUD
 
 # base = declarative_base()
 

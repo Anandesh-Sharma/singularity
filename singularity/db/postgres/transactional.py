@@ -1,6 +1,6 @@
 from functools import wraps
 
-from core.db.postgres.main import session
+from singularity.db.postgres.main import session
 
 
 class Transactional:

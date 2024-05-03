@@ -1,4 +1,4 @@
-from core.service import Base
+from singularity.service import Base
 
 from .model import CarModel
 from .schemas import Car, CarRead

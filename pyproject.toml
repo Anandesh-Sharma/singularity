@@ -1,14 +1,14 @@
 [tool.poetry]
-name = "singularity"
+name = "singularity-core"
 version = "0.1.0"
 description = "Funny backend"
 authors = ["Anandesh Sharma <anandeshsharma@gmail.com>"]
 license = "MIT"
 readme = "README.md"
-packages = [{ include = "src" }]
+packages = [{ include = "singularity" }]
 
 [tool.poetry.dependencies]
-python = "^3.12.2"
+python = "^3.10"
 alembic = "^1.13.1"
 uvicorn = "^0.25.0"
 fastapi = "^0.109.0"

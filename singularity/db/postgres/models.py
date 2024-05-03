@@ -8,7 +8,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.future import select
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
-from core.db.postgres.main import async_engine, async_session
+from singularity.db.postgres.main import async_engine, async_session
 
 
 class UUIDMixin:
