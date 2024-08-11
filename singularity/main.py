@@ -16,10 +16,12 @@ def service_name_validation(name: str) -> None | ValueError:
 
 class Singularity(FastAPI):
     def __init__(self, env_path: str = None):
-        self.base_path = Path(inspect.stack()[1].filename).parent
-        self.services_folder = self.base_path / "services"
+        self.base_path: str = Path(inspect.stack()[1].filename).parent
+        self.services_folder: str = self.base_path / "services"
+        self.services_path: list = []
+
+        self.setup_application()
         self._load_env_(env_path)
-        self._setup_application_()
 
     def _load_env_(self, path: str | None):
         if path is None:
@@ -30,64 +32,57 @@ class Singularity(FastAPI):
 
         load_dotenv(dotenv_path=path)
 
-    def _setup_application_(
+    def setup_application(
         self,
     ):
         self.app = FastAPI()
-        self.router = APIRouter()
-        self.register_services()
-        self.app.include_router(self.router)
+        router = self.register_services()
+        self.app.include_router(router)
 
     def __getattr__(self, name):
         # This method is called when an attribute is not found in the usual places.
         # It delegates attribute access to the FastAPI instance.
         return getattr(self.app, name)
 
+    @staticmethod
+    def service_name_validation(name: str) -> None | ValueError:
+        if any(c in name for c in " /\\.:?\"<>*[]=;,!@#$%^&()+`~'"):
+            print(
+                f"Service name: {name} should contain only alphabets, numbers, and underscores."
+            )
+            return False
+        else:
+            return True
+
     def register_services(self):
-        for service_name in os.listdir(self.services_folder):
-            # validate service name
-            service_name_validation(service_name)
+        router: APIRouter = APIRouter()
+        services_path: list = []
+        for root, dirs, files in os.walk(self.services_folder):
+            if "service.py" in files:
+                route = root.replace(str(self.services_folder), "")
+                print(route, dirs, files)
+                services_path.append((route, root))
 
-            if os.path.isdir(
-                os.path.join(self.services_folder, service_name)
-            ) and os.path.exists(
-                os.path.join(self.services_folder, service_name, "service.py")
-            ):
-                spec = importlib.util.spec_from_file_location(
-                    "service", f"{self.services_folder}/{service_name}/service.py"
-                )
-                module = importlib.util.module_from_spec(spec)
-                module.__package__ = f"services.{service_name}"
-                spec.loader.exec_module(module)
+        for route_prefix, service_path in services_path:
+            spec = importlib.util.spec_from_file_location(
+                "service", str(service_path) + "/service.py"
+            )
+            module = importlib.util.module_from_spec(spec)
+            module.__package__ = f"services{route_prefix.replace('/', '.')}"
+            spec.loader.exec_module(module)
 
-                if hasattr(module, "Service"):
-                    service_class = getattr(module, "Service")
-                    service_instance = service_class()
-                    if hasattr(service_instance, "get"):
-                        self.router.add_api_route(
-                            f"/{service_name}",
-                            getattr(service_instance, "get"),
-                            methods=["GET"],
+            if hasattr(module, "Service"):
+                print(f"Registering service at {route_prefix}")
+                service_class = getattr(module, "Service")
+                service_instance = service_class()
+                for http_method in ["get", "post", "put", "delete"]:
+                    if hasattr(service_instance, http_method):
+                        router.add_api_route(
+                            route_prefix.replace("|", "/"),
+                            getattr(service_instance, http_method),
+                            methods=[http_method.upper()],
                         )
-                    if hasattr(service_instance, "post"):
-                        self.router.add_api_route(
-                            f"/{service_name}",
-                            getattr(service_instance, "post"),
-                            methods=["POST"],
-                        )
-                    if hasattr(service_instance, "put"):
-                        self.router.add_api_route(
-                            f"/{service_name}",
-                            getattr(service_instance, "put"),
-                            methods=["PUT"],
-                        )
-                    if hasattr(service_instance, "delete"):
-                        self.router.add_api_route(
-                            f"/{service_name}",
-                            getattr(service_instance, "delete"),
-                            methods=["DELETE"],
-                        )
-                else:
-                    raise ValueError(f"Service class not found in {service_name}")
             else:
-                raise ValueError(f"Service file not found in {service_name}")
+                raise ValueError(f"Service class not found in {str(service_path)}")
+
+        return router
