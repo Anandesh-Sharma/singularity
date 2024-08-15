@@ -7,19 +7,11 @@ from dotenv import load_dotenv
 from fastapi import APIRouter, FastAPI
 
 
-def service_name_validation(name: str) -> None | ValueError:
-    if any(c in name for c in " /\\.:?\"<>|*[]=;,!@#$%^&(){}+`~'"):
-        raise ValueError(
-            f"Service name: {name} should contain only alphabets, numbers, and underscores."
-        )
-
-
 class Singularity(FastAPI):
     def __init__(self, env_path: str = None):
         self.base_path: str = Path(inspect.stack()[1].filename).parent
         self.services_folder: str = self.base_path / "services"
         self.services_path: list = []
-
         self.setup_application()
         self._load_env_(env_path)
 
@@ -60,7 +52,6 @@ class Singularity(FastAPI):
         for root, dirs, files in os.walk(self.services_folder):
             if "service.py" in files:
                 route = root.replace(str(self.services_folder), "")
-                print(route, dirs, files)
                 services_path.append((route, root))
 
         for route_prefix, service_path in services_path:
