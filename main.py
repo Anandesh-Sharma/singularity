@@ -1,7 +1,7 @@
 from singularity import Singularity
 from singularity.db import Mongo
 
-app = Singularity()
+app = Singularity(env_path="/Users/hash/work/personal/singularity-core/.env")
 
 # setup databse
 db = Mongo()

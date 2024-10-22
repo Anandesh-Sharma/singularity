@@ -14,8 +14,12 @@ class MongoConfig:
     # MongoDB settings
     MONGO_URI = os.getenv("MONGO_URI")
     MONGO_DB = os.getenv("MONGO_DB")
+    assert MONGO_URI is not None, "MONGO_URI is not set in the environment"
     MONGO_USER = os.getenv("MONGO_USER")
     MONGO_PASS = os.getenv("MONGO_PASS")
+    if MONGO_URI is None:
+        # create MONGO_URI from MONGO_USER, MONGO_PASS, MONGO_DB
+        pass
 
 
 class PostgresConfig:
